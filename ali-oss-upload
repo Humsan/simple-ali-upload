@@ -1,0 +1,631 @@
+#! /usr/bin/env php
+<?php
+
+
+if (empty($argv[1])) {
+    exit("Need to choice your want to upload file\n");
+}
+
+$mime_types = array(
+    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'xltx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+    'potx' => 'application/vnd.openxmlformats-officedocument.presentationml.template',
+    'ppsx' => 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'sldx' => 'application/vnd.openxmlformats-officedocument.presentationml.slide',
+    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'dotx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+    'xlam' => 'application/vnd.ms-excel.addin.macroEnabled.12',
+    'xlsb' => 'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+    'apk' => 'application/vnd.android.package-archive',
+    'hqx' => 'application/mac-binhex40',
+    'cpt' => 'application/mac-compactpro',
+    'doc' => 'application/msword',
+    'ogg' => 'audio/ogg',
+    'pdf' => 'application/pdf',
+    'rtf' => 'text/rtf',
+    'mif' => 'application/vnd.mif',
+    'xls' => 'application/vnd.ms-excel',
+    'ppt' => 'application/vnd.ms-powerpoint',
+    'odc' => 'application/vnd.oasis.opendocument.chart',
+    'odb' => 'application/vnd.oasis.opendocument.database',
+    'odf' => 'application/vnd.oasis.opendocument.formula',
+    'odg' => 'application/vnd.oasis.opendocument.graphics',
+    'otg' => 'application/vnd.oasis.opendocument.graphics-template',
+    'odi' => 'application/vnd.oasis.opendocument.image',
+    'odp' => 'application/vnd.oasis.opendocument.presentation',
+    'otp' => 'application/vnd.oasis.opendocument.presentation-template',
+    'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+    'ots' => 'application/vnd.oasis.opendocument.spreadsheet-template',
+    'odt' => 'application/vnd.oasis.opendocument.text',
+    'odm' => 'application/vnd.oasis.opendocument.text-master',
+    'ott' => 'application/vnd.oasis.opendocument.text-template',
+    'oth' => 'application/vnd.oasis.opendocument.text-web',
+    'sxw' => 'application/vnd.sun.xml.writer',
+    'stw' => 'application/vnd.sun.xml.writer.template',
+    'sxc' => 'application/vnd.sun.xml.calc',
+    'stc' => 'application/vnd.sun.xml.calc.template',
+    'sxd' => 'application/vnd.sun.xml.draw',
+    'std' => 'application/vnd.sun.xml.draw.template',
+    'sxi' => 'application/vnd.sun.xml.impress',
+    'sti' => 'application/vnd.sun.xml.impress.template',
+    'sxg' => 'application/vnd.sun.xml.writer.global',
+    'sxm' => 'application/vnd.sun.xml.math',
+    'sis' => 'application/vnd.symbian.install',
+    'wbxml' => 'application/vnd.wap.wbxml',
+    'wmlc' => 'application/vnd.wap.wmlc',
+    'wmlsc' => 'application/vnd.wap.wmlscriptc',
+    'bcpio' => 'application/x-bcpio',
+    'torrent' => 'application/x-bittorrent',
+    'bz2' => 'application/x-bzip2',
+    'vcd' => 'application/x-cdlink',
+    'pgn' => 'application/x-chess-pgn',
+    'cpio' => 'application/x-cpio',
+    'csh' => 'application/x-csh',
+    'dvi' => 'application/x-dvi',
+    'spl' => 'application/x-futuresplash',
+    'gtar' => 'application/x-gtar',
+    'hdf' => 'application/x-hdf',
+    'jar' => 'application/java-archive',
+    'jnlp' => 'application/x-java-jnlp-file',
+    'js' => 'application/javascript',
+    'json' => 'application/json',
+    'ksp' => 'application/x-kspread',
+    'chrt' => 'application/x-kchart',
+    'kil' => 'application/x-killustrator',
+    'latex' => 'application/x-latex',
+    'rpm' => 'application/x-rpm',
+    'sh' => 'application/x-sh',
+    'shar' => 'application/x-shar',
+    'swf' => 'application/x-shockwave-flash',
+    'sit' => 'application/x-stuffit',
+    'sv4cpio' => 'application/x-sv4cpio',
+    'sv4crc' => 'application/x-sv4crc',
+    'tar' => 'application/x-tar',
+    'tcl' => 'application/x-tcl',
+    'tex' => 'application/x-tex',
+    'man' => 'application/x-troff-man',
+    'me' => 'application/x-troff-me',
+    'ms' => 'application/x-troff-ms',
+    'ustar' => 'application/x-ustar',
+    'src' => 'application/x-wais-source',
+    'zip' => 'application/zip',
+    'm3u' => 'audio/x-mpegurl',
+    'ra' => 'audio/x-pn-realaudio',
+    'wav' => 'audio/x-wav',
+    'wma' => 'audio/x-ms-wma',
+    'wax' => 'audio/x-ms-wax',
+    'pdb' => 'chemical/x-pdb',
+    'xyz' => 'chemical/x-xyz',
+    'bmp' => 'image/bmp',
+    'gif' => 'image/gif',
+    'ief' => 'image/ief',
+    'png' => 'image/png',
+    'wbmp' => 'image/vnd.wap.wbmp',
+    'ras' => 'image/x-cmu-raster',
+    'pnm' => 'image/x-portable-anymap',
+    'pbm' => 'image/x-portable-bitmap',
+    'pgm' => 'image/x-portable-graymap',
+    'ppm' => 'image/x-portable-pixmap',
+    'rgb' => 'image/x-rgb',
+    'xbm' => 'image/x-xbitmap',
+    'xpm' => 'image/x-xpixmap',
+    'xwd' => 'image/x-xwindowdump',
+    'css' => 'text/css',
+    'rtx' => 'text/richtext',
+    'tsv' => 'text/tab-separated-values',
+    'jad' => 'text/vnd.sun.j2me.app-descriptor',
+    'wml' => 'text/vnd.wap.wml',
+    'wmls' => 'text/vnd.wap.wmlscript',
+    'etx' => 'text/x-setext',
+    'mxu' => 'video/vnd.mpegurl',
+    'flv' => 'video/x-flv',
+    'wm' => 'video/x-ms-wm',
+    'wmv' => 'video/x-ms-wmv',
+    'wmx' => 'video/x-ms-wmx',
+    'wvx' => 'video/x-ms-wvx',
+    'avi' => 'video/x-msvideo',
+    'movie' => 'video/x-sgi-movie',
+    'ice' => 'x-conference/x-cooltalk',
+    '3gp' => 'video/3gpp',
+    'ai' => 'application/postscript',
+    'aif' => 'audio/x-aiff',
+    'aifc' => 'audio/x-aiff',
+    'aiff' => 'audio/x-aiff',
+    'asc' => 'text/plain',
+    'atom' => 'application/atom+xml',
+    'au' => 'audio/basic',
+    'bin' => 'application/octet-stream',
+    'cdf' => 'application/x-netcdf',
+    'cgm' => 'image/cgm',
+    'class' => 'application/octet-stream',
+    'dcr' => 'application/x-director',
+    'dif' => 'video/x-dv',
+    'dir' => 'application/x-director',
+    'djv' => 'image/vnd.djvu',
+    'djvu' => 'image/vnd.djvu',
+    'dll' => 'application/octet-stream',
+    'dmg' => 'application/octet-stream',
+    'dms' => 'application/octet-stream',
+    'dtd' => 'application/xml-dtd',
+    'dv' => 'video/x-dv',
+    'dxr' => 'application/x-director',
+    'eps' => 'application/postscript',
+    'exe' => 'application/octet-stream',
+    'ez' => 'application/andrew-inset',
+    'gram' => 'application/srgs',
+    'grxml' => 'application/srgs+xml',
+    'gz' => 'application/x-gzip',
+    'htm' => 'text/html',
+    'html' => 'text/html',
+    'ico' => 'image/x-icon',
+    'ics' => 'text/calendar',
+    'ifb' => 'text/calendar',
+    'iges' => 'model/iges',
+    'igs' => 'model/iges',
+    'jp2' => 'image/jp2',
+    'jpe' => 'image/jpeg',
+    'jpeg' => 'image/jpeg',
+    'jpg' => 'image/jpeg',
+    'kar' => 'audio/midi',
+    'lha' => 'application/octet-stream',
+    'lzh' => 'application/octet-stream',
+    'm4a' => 'audio/mp4a-latm',
+    'm4p' => 'audio/mp4a-latm',
+    'm4u' => 'video/vnd.mpegurl',
+    'm4v' => 'video/x-m4v',
+    'mac' => 'image/x-macpaint',
+    'mathml' => 'application/mathml+xml',
+    'mesh' => 'model/mesh',
+    'mid' => 'audio/midi',
+    'midi' => 'audio/midi',
+    'mov' => 'video/quicktime',
+    'mp2' => 'audio/mpeg',
+    'mp3' => 'audio/mpeg',
+    'mp4' => 'video/mp4',
+    'mpe' => 'video/mpeg',
+    'mpeg' => 'video/mpeg',
+    'mpg' => 'video/mpeg',
+    'mpga' => 'audio/mpeg',
+    'msh' => 'model/mesh',
+    'nc' => 'application/x-netcdf',
+    'oda' => 'application/oda',
+    'ogv' => 'video/ogv',
+    'pct' => 'image/pict',
+    'pic' => 'image/pict',
+    'pict' => 'image/pict',
+    'pnt' => 'image/x-macpaint',
+    'pntg' => 'image/x-macpaint',
+    'ps' => 'application/postscript',
+    'qt' => 'video/quicktime',
+    'qti' => 'image/x-quicktime',
+    'qtif' => 'image/x-quicktime',
+    'ram' => 'audio/x-pn-realaudio',
+    'rdf' => 'application/rdf+xml',
+    'rm' => 'application/vnd.rn-realmedia',
+    'roff' => 'application/x-troff',
+    'sgm' => 'text/sgml',
+    'sgml' => 'text/sgml',
+    'silo' => 'model/mesh',
+    'skd' => 'application/x-koan',
+    'skm' => 'application/x-koan',
+    'skp' => 'application/x-koan',
+    'skt' => 'application/x-koan',
+    'smi' => 'application/smil',
+    'smil' => 'application/smil',
+    'snd' => 'audio/basic',
+    'so' => 'application/octet-stream',
+    'svg' => 'image/svg+xml',
+    't' => 'application/x-troff',
+    'texi' => 'application/x-texinfo',
+    'texinfo' => 'application/x-texinfo',
+    'tif' => 'image/tiff',
+    'tiff' => 'image/tiff',
+    'tr' => 'application/x-troff',
+    'txt' => 'text/plain',
+    'vrml' => 'model/vrml',
+    'vxml' => 'application/voicexml+xml',
+    'webm' => 'video/webm',
+    'webp' => 'image/webp',
+    'wrl' => 'model/vrml',
+    'xht' => 'application/xhtml+xml',
+    'xhtml' => 'application/xhtml+xml',
+    'xml' => 'application/xml',
+    'xsl' => 'application/xml',
+    'xslt' => 'application/xslt+xml',
+    'xul' => 'application/vnd.mozilla.xul+xml',
+);
+
+function getMimetype($name,$mime_types)
+{
+    $parts = explode('.', $name);
+    if (count($parts) > 1) {
+        $ext = strtolower(end($parts));
+        if (isset($mime_types[$ext])) {
+            return $mime_types[$ext];
+        }
+    }
+    
+    return 'application/octet-stream';
+}
+
+function validateBucket($bucket)
+{
+    $pattern = '/^[a-z0-9][a-z0-9-]{2,62}$/';
+    if (!preg_match($pattern, $bucket)) {
+        return false;
+    }
+    return true;
+}
+
+function generateHeaders($options, $hostname)
+{
+    $headers = array(
+        'Content-Md5' => '',
+        'Content-Type' => isset($options['Content-Type']) ? $options['Content-Type'] : 'application/octet-stream',
+        'Date' => isset($options['Date']) ? $options['Date'] : gmdate('D, d M Y H:i:s \G\M\T'),
+        'Host' => $hostname,
+    );
+    if (isset($options['Content-Md5'])) {
+        $headers['Content-Md5'] = $options['Content-Md5'];
+    }
+    
+    
+    //合并HTTP headers
+    if (isset($options['headers'])) {
+        $headers = array_merge($headers, $options['headers']);
+    }
+    return $headers;
+}
+
+function generateSignableQueryStringParam($options)
+{
+    $signableQueryStringParams = array();
+    $signableList = array(
+        'partNumber',
+        'response-content-type',
+        'response-content-language',
+        'response-cache-control',
+        'response-content-encoding',
+        'response-expires',
+        'response-content-disposition',
+        'uploadId',
+        'comp',
+        'status',
+        'startTime',
+        'endTime',
+        'x-oss-process',
+        'position',
+        'symlink',
+        'restore',
+    );
+    
+    foreach ($signableList as $item) {
+        if (isset($options[$item])) {
+            $signableQueryStringParams[$item] = $options[$item];
+        }
+    }
+    
+    
+    
+    return $signableQueryStringParams;
+}
+
+function toQueryString($options = array())
+{
+    $temp = array();
+    uksort($options, 'strnatcasecmp');
+    foreach ($options as $key => $value) {
+        if (is_string($key) && !is_array($value)) {
+            $temp[] = rawurlencode($key) . '=' . rawurlencode($value);
+        }
+    }
+    return implode('&', $temp);
+}
+
+function generateResourceUri($options)
+{
+    $resource_uri = "";
+    
+    // resource_uri + object
+    if (isset($options['object']) && '/' !== $options['object']) {
+        $resource_uri .= '/' . str_replace(array('%2F', '%25'), array('/', '%'), rawurlencode($options['object']));
+    }
+    
+    // resource_uri + sub_resource
+    $conjunction = '?';
+    if (isset($options['sub_resource'])) {
+        $resource_uri .= $conjunction . $options['sub_resource'];
+    }
+    return $resource_uri;
+}
+
+function generateQueryString($options)
+{
+    //请求参数
+    $queryStringParams = array();
+    if (isset($options['query_string'])) {
+        $queryStringParams = array_merge($queryStringParams, $options['query_string']);
+    }
+    return toQueryString($queryStringParams);
+}
+
+function generateUserAgent()
+{
+    return "aliyun-sdk-php/2.3.0" . " (" . php_uname('s') . "/" . php_uname('r') . "/" . php_uname('m') . ";" . PHP_VERSION . ")";
+}
+
+function generateSignableResource($options)
+{
+    $signableResource = "";
+    $signableResource .= '/';
+    if (isset($options['bucket']) && '' !== $options['bucket']) {
+        $signableResource .= $options['bucket'];
+        // 如果操作没有Object操作的话，这里最后是否有斜线有个trick，ip的域名下，不需要加'/'， 否则需要加'/'
+        /*if ($options[self::OSS_OBJECT] == '/') {
+            if ($this->hostType !== self::OSS_HOST_TYPE_IP) {
+                $signableResource .= "/";
+            }
+        }*/
+    }
+    //signable_resource + object
+    if (isset($options['object']) && '/' !== $options['object']) {
+        $signableResource .= '/' . str_replace(array('%2F', '%25'), array('/', '%'), rawurlencode($options['object']));
+    }
+    if (isset($options['sub_resource'])) {
+        $signableResource .= '?' . $options['sub_resource'];
+    }
+    return $signableResource;
+}
+
+function stringToSignSorted($string_to_sign)
+{
+    $queryStringSorted = '';
+    $explodeResult = explode('?', $string_to_sign);
+    $index = count($explodeResult);
+    if ($index === 1)
+        return $string_to_sign;
+    
+    $queryStringParams = explode('&', $explodeResult[$index - 1]);
+    sort($queryStringParams);
+    
+    foreach($queryStringParams as $params)
+    {
+        $queryStringSorted .= $params . '&';
+    }
+    
+    $queryStringSorted = substr($queryStringSorted, 0, -1);
+    
+    return $explodeResult[0] . '?' . $queryStringSorted;
+}
+
+
+// upload file
+$uploadFile = $argv[1];
+// save filename
+$saveObject = empty($argv[2]) ? $uploadFile : $argv[2];
+
+// Get where call this script path name
+$currentPath = exec('pwd');
+
+
+// ali oss access key
+$aliKey = getenv('ali_key');
+// ali oss access secret
+$aliSecret = getenv('ali_secret');
+// ali oss endpoint
+$aliEndpoint = getenv('ali_endpoint');
+// ali oss bucket
+$aliBucket = getenv('ali_bucket');
+
+if ($aliKey === false || $aliSecret === false || $aliEndpoint === false || $aliBucket === false)
+    exit("You must to set your ali oss key and secret\nLike 'export ali_key=\"your_ali_key\"'");
+
+$fileName = $currentPath.DIRECTORY_SEPARATOR.$uploadFile;
+
+$resource = $uploadFile;
+$file_size = filesize($resource);
+$content_md5 = base64_encode(md5_file($resource, true));
+$options['fileUpload'] = $resource;
+$options['Content-Md5'] = $content_md5;
+$options['Content-Type'] = getMimeType($uploadFile,$mime_types);
+$options['method'] = 'PUT';
+$options['bucket'] = $aliBucket;
+$options['object'] = urlencode($saveObject);
+$options['Content-Length'] = $file_size;
+
+$scheme = 'http://';
+$hostname = $scheme.$aliBucket.'.'.$aliEndpoint;
+$host = $aliBucket.'.'.$aliEndpoint;
+
+$string_to_sign = '';
+$headers = generateHeaders($options, $hostname);
+$signable_query_string_params = generateSignableQueryStringParam($options);
+$signable_query_string = toQueryString($signable_query_string_params);
+$resource_uri = generateResourceUri($options);
+
+
+//生成请求URL
+$conjunction = '?';
+$non_signable_resource = '';
+if (isset($options['sub_resource'])) {
+    $conjunction = '&';
+}
+if ($signable_query_string !== '') {
+    $signable_query_string = $conjunction . $signable_query_string;
+    $conjunction = '&';
+}
+$query_string = generateQueryString($options);
+if ($query_string !== '') {
+    $non_signable_resource .= $conjunction . $query_string;
+    $conjunction = '&';
+}
+$requestUrl = $hostname . $resource_uri . $signable_query_string . $non_signable_resource;
+$userAgent = generateUserAgent();
+
+if (isset($resource)) {
+    if (is_resource($resource)) {
+        $length = null;
+        
+        if (isset($options['Content-Length'])) {
+            $length = $options['Content-Length'];
+        } elseif (isset($options['seekTo'])) {
+            $stats = fstat($resource);
+            if ($stats && $stats['size'] >= 0) {
+                $length = $stats['size'] - (integer)$options['seekTo'];
+            }
+        }
+        // $request->set_read_stream($options[self::OSS_FILE_UPLOAD], $length);
+    
+        if (!isset($length) || $length < 0) {
+            $stats = fstat($resource);
+        
+            if ($stats && $stats['size'] >= 0) {
+                $position = ftell($resource);
+            
+                if ($position !== false && $position >= 0) {
+                    $size = $stats['size'] - $position;
+                }
+            }
+        }
+    
+        $read_stream = $resource;
+    } else {
+        // $request->set_read_file($options[self::OSS_FILE_UPLOAD]);
+    
+        $location = $read_file = $resource;
+        $read_file_handle = fopen($location, 'r');
+    
+        $read_stream=$read_file_handle;
+        
+        //$length = $request->read_stream_size;
+        $resource = fopen($options['fileUpload'],'r');
+    
+        if (!isset($length) || $length < 0) {
+            $stats = fstat($resource);
+        
+            if ($stats && $stats['size'] >= 0) {
+                $position = ftell($resource);
+            
+                if ($position !== false && $position >= 0) {
+                    $size = $stats['size'] - $position;
+                }
+            }
+        }
+        $length = $size;
+        
+        if (isset($options['Content-Length'])) {
+            $length = $options['Content-Length'];
+        } elseif (isset($options['seekTo']) && isset($length)) {
+            $length -= (integer)$options['seekTo'];
+        }
+        $size = $length;
+    }
+}
+if (isset($options['seekTo'])) {
+    // $request->set_seek_position((integer)$options['seekTo']);
+    $seek_options = isset($options['seekTo']) ? (integer)$options['seekTo'] : null;
+}
+
+
+if (isset($options['method'])) {
+//    $request->set_method($options[self::OSS_METHOD]);
+    $method = strtoupper($options['method']);
+    $string_to_sign .= $options['method'] . "\n";
+}
+
+if (isset($options['content'])) {
+    // $request->set_body($options[self::OSS_CONTENT]);
+    $body = $options['content'];
+    if ($headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+        $headers['Content-Type'] = 'application/octet-stream';
+    }
+    
+    $headers['Content-Length'] = strlen($options['content']);
+    $headers['Content-Md5'] = base64_encode(md5($options['content'], true));
+}
+
+if (isset($options['x-oss-callback'])) {
+    $headers['x-oss-callback'] = base64_encode($options['x-oss-callback']);
+}
+if (isset($options['x-oss-callback-var'])) {
+    $headers['x-oss-callback-var'] = base64_encode($options['x-oss-callback-var']);
+}
+
+if (!isset($headers['Accept-Encoding'])) {
+    $headers['Accept-Encoding'] = '';
+}
+
+uksort($headers, 'strnatcasecmp');
+
+foreach ($headers as $header_key => $header_value) {
+    $header_value = str_replace(array("\r", "\n"), '', $header_value);
+    if ($header_value !== '' || $header_key === 'Accept-Encoding') {
+        //$request->add_header($header_key, $header_value);
+        $requestHeaders[$header_key] = $header_value;
+    }
+    
+    if (
+        strtolower($header_key) === 'content-md5' ||
+        strtolower($header_key) === 'content-type' ||
+        strtolower($header_key) === 'date' ||
+        (isset($options['self::OSS_PREAUTH']) && (integer)$options['self::OSS_PREAUTH'] > 0)
+    ) {
+        $string_to_sign .= $header_value . "\n";
+    } elseif (substr(strtolower($header_key), 0, 6) === 'x-oss-') {
+        $string_to_sign .= strtolower($header_key) . ':' . $header_value . "\n";
+    }
+}
+
+// 生成 signable_resource
+$signable_resource = generateSignableResource($options);
+$string_to_sign .= rawurldecode($signable_resource) . urldecode($signable_query_string);
+
+//对?后面的要签名的string字母序排序
+$string_to_sign_ordered = stringToSignSorted($string_to_sign);
+
+$signature = base64_encode(hash_hmac('sha1', $string_to_sign_ordered, $aliSecret, true));
+$requestHeaders['Authorization'] = 'OSS ' . $aliKey . ':' . $signature;
+
+
+if (isset($options['preauth']) && (integer)$options['preauth'] > 0) {
+    $signed_url = $requestUrl . $conjunction . 'OSSAccessKeyId' . '=' . rawurlencode($aliKey) . '&' . 'Expire' . '=' . $options['preauth'] . '&' . 'signature' . '=' . rawurlencode($signature);
+    return $signed_url;
+} elseif (isset($options['preauth'])) {
+    return $requestUrl;
+}
+
+$timeout = 0;
+$connectTimeout = 0;
+
+
+unset($requestHeaders['Accept-Encoding']);
+
+$reqHeaders = [
+        'host'=>'Host: '.$host,
+        'agent'=>'User-Agent: '.$userAgent,
+        'accept'=>'Accept: */*',
+        'type'=>'Content-Type: '.$requestHeaders['Content-Type'],
+        'date'=>'date: '.$requestHeaders['Date'],
+        'md5'=>'Content-MD5: '.$requestHeaders['Content-Md5'],
+        'authorization'=>'Authorization: '.$requestHeaders['Authorization'],
+        'length' => 'Content-Length: '.$file_size
+];
+
+try {
+    send_request($requestUrl,$reqHeaders,$uploadFile,$currentPath);
+} catch (Exception $e) {
+    var_dump($e->getMessage());
+}
+
+function send_request($url,$headers,$file,$currentPath)
+{
+    $curlStr = <<<CURL
+curl -v -X "PUT" -H "{Host}" -H "{userAgent}" -H "Accept: */*" -H "{ContentType}" -H "{length}" -H "{date}" -H "{md5}" -H "{authorization}" {url} -T "{$currentPath}/{file}"
+CURL;
+    
+    $str = str_replace(['{Host}','{userAgent}','{ContentType}','{length}','{date}','{md5}','{authorization}','{url}','{file}'], [$headers['host'],$headers['agent'],$headers['type'],$headers['length'],$headers['date'],$headers['md5'],$headers['authorization'],$url,$file], $curlStr);
+    
+    exec($str);
+
+}

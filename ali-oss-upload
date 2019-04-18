@@ -6,6 +6,7 @@ if (empty($argv[1])) {
     exit("Need to choice your want to upload file\n");
 }
 
+// 文件类型数组
 $mime_types = array(
     'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'xltx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
@@ -236,6 +237,13 @@ $mime_types = array(
     'xul' => 'application/vnd.mozilla.xul+xml',
 );
 
+/**
+ * 根据文件后缀获取文件的哦MIME-TYPE
+ * @param $name
+ * @param $mime_types
+ *
+ * @return mixed|string
+ */
 function getMimetype($name,$mime_types)
 {
     $parts = explode('.', $name);
@@ -249,6 +257,13 @@ function getMimetype($name,$mime_types)
     return 'application/octet-stream';
 }
 
+/**
+ * 检验bucket名是否有效
+ * todo
+ * @param $bucket
+ *
+ * @return bool
+ */
 function validateBucket($bucket)
 {
     $pattern = '/^[a-z0-9][a-z0-9-]{2,62}$/';
@@ -258,6 +273,14 @@ function validateBucket($bucket)
     return true;
 }
 
+/**
+ * 生成请求头
+ *
+ * @param $options
+ * @param $hostname
+ *
+ * @return array
+ */
 function generateHeaders($options, $hostname)
 {
     $headers = array(
@@ -278,6 +301,11 @@ function generateHeaders($options, $hostname)
     return $headers;
 }
 
+/**
+ * @param $options
+ *
+ * @return array
+ */
 function generateSignableQueryStringParam($options)
 {
     $signableQueryStringParams = array();
@@ -311,6 +339,11 @@ function generateSignableQueryStringParam($options)
     return $signableQueryStringParams;
 }
 
+/**
+ * @param array $options
+ *
+ * @return string
+ */
 function toQueryString($options = array())
 {
     $temp = array();
@@ -323,6 +356,11 @@ function toQueryString($options = array())
     return implode('&', $temp);
 }
 
+/**
+ * @param $options
+ *
+ * @return string
+ */
 function generateResourceUri($options)
 {
     $resource_uri = "";
@@ -340,6 +378,11 @@ function generateResourceUri($options)
     return $resource_uri;
 }
 
+/**
+ * @param $options
+ *
+ * @return string
+ */
 function generateQueryString($options)
 {
     //请求参数
@@ -350,11 +393,19 @@ function generateQueryString($options)
     return toQueryString($queryStringParams);
 }
 
+/**
+ * @return string
+ */
 function generateUserAgent()
 {
     return "aliyun-sdk-php/2.3.0" . " (" . php_uname('s') . "/" . php_uname('r') . "/" . php_uname('m') . ";" . PHP_VERSION . ")";
 }
 
+/**
+ * @param $options
+ *
+ * @return string
+ */
 function generateSignableResource($options)
 {
     $signableResource = "";
@@ -378,6 +429,11 @@ function generateSignableResource($options)
     return $signableResource;
 }
 
+/**
+ * @param $string_to_sign
+ *
+ * @return string
+ */
 function stringToSignSorted($string_to_sign)
 {
     $queryStringSorted = '';
@@ -463,65 +519,7 @@ if ($query_string !== '') {
 $requestUrl = $hostname . $resource_uri . $signable_query_string . $non_signable_resource;
 $userAgent = generateUserAgent();
 
-if (isset($resource)) {
-    if (is_resource($resource)) {
-        $length = null;
-        
-        if (isset($options['Content-Length'])) {
-            $length = $options['Content-Length'];
-        } elseif (isset($options['seekTo'])) {
-            $stats = fstat($resource);
-            if ($stats && $stats['size'] >= 0) {
-                $length = $stats['size'] - (integer)$options['seekTo'];
-            }
-        }
-        // $request->set_read_stream($options[self::OSS_FILE_UPLOAD], $length);
-    
-        if (!isset($length) || $length < 0) {
-            $stats = fstat($resource);
-        
-            if ($stats && $stats['size'] >= 0) {
-                $position = ftell($resource);
-            
-                if ($position !== false && $position >= 0) {
-                    $size = $stats['size'] - $position;
-                }
-            }
-        }
-    
-        $read_stream = $resource;
-    } else {
-        // $request->set_read_file($options[self::OSS_FILE_UPLOAD]);
-    
-        $location = $read_file = $resource;
-        $read_file_handle = fopen($location, 'r');
-    
-        $read_stream=$read_file_handle;
-        
-        //$length = $request->read_stream_size;
-        $resource = fopen($options['fileUpload'],'r');
-    
-        if (!isset($length) || $length < 0) {
-            $stats = fstat($resource);
-        
-            if ($stats && $stats['size'] >= 0) {
-                $position = ftell($resource);
-            
-                if ($position !== false && $position >= 0) {
-                    $size = $stats['size'] - $position;
-                }
-            }
-        }
-        $length = $size;
-        
-        if (isset($options['Content-Length'])) {
-            $length = $options['Content-Length'];
-        } elseif (isset($options['seekTo']) && isset($length)) {
-            $length -= (integer)$options['seekTo'];
-        }
-        $size = $length;
-    }
-}
+
 if (isset($options['seekTo'])) {
     // $request->set_seek_position((integer)$options['seekTo']);
     $seek_options = isset($options['seekTo']) ? (integer)$options['seekTo'] : null;
@@ -587,19 +585,6 @@ $string_to_sign_ordered = stringToSignSorted($string_to_sign);
 $signature = base64_encode(hash_hmac('sha1', $string_to_sign_ordered, $aliSecret, true));
 $requestHeaders['Authorization'] = 'OSS ' . $aliKey . ':' . $signature;
 
-
-if (isset($options['preauth']) && (integer)$options['preauth'] > 0) {
-    $signed_url = $requestUrl . $conjunction . 'OSSAccessKeyId' . '=' . rawurlencode($aliKey) . '&' . 'Expire' . '=' . $options['preauth'] . '&' . 'signature' . '=' . rawurlencode($signature);
-    return $signed_url;
-} elseif (isset($options['preauth'])) {
-    return $requestUrl;
-}
-
-$timeout = 0;
-$connectTimeout = 0;
-
-
-unset($requestHeaders['Accept-Encoding']);
 
 $reqHeaders = [
         'host'=>'Host: '.$host,
